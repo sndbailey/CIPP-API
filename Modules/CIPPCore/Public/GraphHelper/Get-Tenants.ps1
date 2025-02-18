@@ -32,7 +32,7 @@ function Get-Tenants {
     }
 
     if ($TenantFilter) {
-        Write-Information "Getting tenant $TenantFilter"
+        #Write-Information "Getting tenant $TenantFilter"
         if ($TenantFilter -match '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$') {
             $Filter = "{0} and customerId eq '{1}'" -f $Filter, $TenantFilter
             # create where-object scriptblock
@@ -50,7 +50,7 @@ function Get-Tenants {
 
     $IncludedTenantsCache = Get-CIPPAzDataTableEntity @TenantsTable -Filter $Filter
 
-    if (($IncludedTenantsCache | Measure-Object).Count -eq 0) {
+    if (($IncludedTenantsCache | Measure-Object).Count -eq 0 -and $TenantFilter -ne $env:TenantID) {
         $BuildRequired = $true
     }
 
@@ -121,6 +121,7 @@ function Get-Tenants {
                     } catch {
                         $ErrorMessage = Get-CippException -Exception $_
                         Write-LogMessage -API 'Get-Tenants' -message "Tried adding $($LatestRelationship.customerId) to tenant list but failed to get domains - $($_.Exception.Message)" -Sev 'Critical' -LogData $ErrorMessage
+                        $Domain = 'Invalid'
                     } finally {
                         $defaultDomainName = $Domain
                         $initialDomainName = $Domain
